@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/black"
+    android:padding="20dp"
+    tools:context=".DashboardActivity">
+
+    <TextView
+        android:id="@+id/tvDashboardTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Where to?"
+        android:textColor="@color/white"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="30dp"
+        android:layout_marginTop="20dp"/>
+
+    <Button
+        android:id="@+id/btnNavigate"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="START NAVIGATION"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:backgroundTint="@color/hearway_green"
+        android:textColor="@color/black"
+        android:contentDescription="Start Navigation. Plan a route."
+        android:layout_marginBottom="20dp"/>
+
+    <Button
+        android:id="@+id/btnCommunicate"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="COMMUNICATE"
+        android:textSize="20sp"
+        android:backgroundTint="@color/white"
+        android:textColor="@color/black"
+        android:contentDescription="Communication Helper. Talk to driver or staff."
+        android:layout_marginBottom="20dp"/>
+
+    <Button
+        android:id="@+id/btnEmergency"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="EMERGENCY (SOS)"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:backgroundTint="@color/hearway_red"
+        android:textColor="@color/white"
+        android:contentDescription="Emergency Button. Report an issue silently." />
+
+</LinearLayout>

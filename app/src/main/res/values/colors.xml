@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="hearway_green">#00FF00</color> <color name="hearway_red">#FF0000</color>   <color name="dark_grey">#1A1A1A</color>
+
+    <color name="colorPrimary">#000000</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorAccent">#00FF00</color>
+</resources>

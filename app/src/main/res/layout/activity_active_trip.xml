@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:padding="20dp"
+    tools:context=".ActiveTripActivity">
+
+    <TextView
+        android:id="@+id/tvHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="On Route: Bus 24"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/imgMapPlaceholder"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:src="@android:drawable/ic_dialog_map"
+        android:background="#333333"
+        app:layout_constraintTop_toBottomOf="@id/tvHeader"
+        android:layout_marginTop="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvProximityLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Proximity to Stop"
+        android:textColor="#AAAAAA"
+        app:layout_constraintBottom_toTopOf="@+id/progressBarTrip"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="10dp"/>
+
+    <ProgressBar
+        android:id="@+id/progressBarTrip"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:progress="70"
+        android:progressTint="#FFA500"
+        android:backgroundTint="#333333"
+        app:layout_constraintBottom_toTopOf="@+id/tvNextStop"
+        android:layout_marginBottom="40dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvNextStop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="NEXT STOP:\nMAIN SQUARE"
+        android:textColor="@color/white"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="50dp"/>
+
+    <Button
+        android:id="@+id/btnSimulate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="[DEV: Arrive]"
+        android:backgroundTint="#333333"
+        android:textColor="#FFFF00"
+        app:layout_constraintTop_toBottomOf="@id/tvHeader"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
