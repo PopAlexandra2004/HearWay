@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,12 +34,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ro.utcn.uid.hearway.TtsManager
 import ro.utcn.uid.hearway.common.UserType
 import ro.utcn.uid.hearway.ui.theme.MyHearwayTheme
 
 @Composable
 fun AppLoading(onProfileSelected: (UserType) -> Unit) {
     val focusRequester = remember { FocusRequester() }
+    val ttsInitialized by TtsManager.isInitialized
 
     Column(
         modifier = Modifier
@@ -94,8 +97,12 @@ fun AppLoading(onProfileSelected: (UserType) -> Unit) {
         }
     }
 
-    LaunchedEffect(Unit) {
+    // This effect will re-launch whenever ttsInitialized changes.
+    LaunchedEffect(ttsInitialized) {
         focusRequester.requestFocus()
+        if (ttsInitialized) {
+            TtsManager.speak("To select the blind profile, please press the volume down button.")
+        }
     }
 }
 
