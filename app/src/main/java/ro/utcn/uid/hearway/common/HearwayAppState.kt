@@ -1,10 +1,10 @@
 package ro.utcn.uid.hearway.common
 
 enum class HearwayAppState {
-    LOAD_TTS,
     INIT,
+    LOAD_TTS,
+    DASHBOARD,
+    COMMUNICATE,
     ERROR,
-    EXIT,
-    DASHBOARD
-
+    EXIT
 }

@@ -9,6 +9,7 @@ activityCompose = "1.12.2"
 composeBom = "2025.12.01"
 compose-compiler = "1.5.15"
 lifecycleRuntimeKtx = "2.10.0"
+camera = "1.3.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -28,6 +29,11 @@ androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 compose-material-icons = { group = "androidx.compose.material", name = "material-icons-core" }
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+androidx-camera-cameracore = { module = "androidx.camera:camera-core", version.ref = "camera" }
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera" }
+androidx-camera-cameralifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera" }
+androidx-camera-cameraview = { module = "androidx.camera:camera-view", version.ref = "camera" }
+google-accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version = "0.34.0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

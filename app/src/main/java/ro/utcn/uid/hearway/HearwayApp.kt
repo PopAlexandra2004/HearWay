@@ -13,21 +13,21 @@ import androidx.compose.ui.platform.LocalContext
 import ro.utcn.uid.hearway.common.HearwayAppState
 import ro.utcn.uid.hearway.common.UserProfile
 import ro.utcn.uid.hearway.tts.TtsManager
-import ro.utcn.uid.hearway.ui.composables.AppLoading
-import ro.utcn.uid.hearway.ui.composables.Dashboard
+import ro.utcn.uid.hearway.ui.composables.communicate.Communicate
+import ro.utcn.uid.hearway.ui.composables.dashboard.Dashboard
 import ro.utcn.uid.hearway.ui.composables.Exit
 import ro.utcn.uid.hearway.ui.composables.Error
+import ro.utcn.uid.hearway.ui.composables.profile.AppLoading
 
 
 @Composable
 fun HearwayApp() {
-    var error             by remember { mutableStateOf<String?>(null) }
     var userProfile by rememberSaveable { mutableStateOf<UserProfile?>(null) }
+    var error       by remember { mutableStateOf<String?>(null) }
+    var fromState   by rememberSaveable { mutableStateOf(HearwayAppState.LOAD_TTS) }
+    var nextState   by rememberSaveable { mutableStateOf(HearwayAppState.LOAD_TTS) }
     val context = LocalContext.current
-    var fromState by rememberSaveable { mutableStateOf(HearwayAppState.INIT) }
-    var nextState by rememberSaveable { mutableStateOf(HearwayAppState.LOAD_TTS) }
 
-    // The TTS Manager lifecycle is now tied to the entire app.
     DisposableEffect(Unit) {
         TtsManager.initialize(context)
         onDispose {
@@ -61,9 +61,15 @@ fun HearwayApp() {
         HearwayAppState.DASHBOARD -> {
             Dashboard(
                 onNavigate = { Log.d("HearwayApp", "Navigate clicked") },
-                onCommunicate = { Log.d("HearwayApp", "Communicate clicked") },
+                onCommunicate = {
+                    nextState = HearwayAppState.COMMUNICATE
+                    Log.d("HearwayApp", "Communicate clicked") },
                 onEmergency = { Log.d("HearwayApp", "Emergency clicked") }
             )
+        }
+
+        HearwayAppState.COMMUNICATE -> {
+            Communicate()
         }
 
         HearwayAppState.ERROR -> {
