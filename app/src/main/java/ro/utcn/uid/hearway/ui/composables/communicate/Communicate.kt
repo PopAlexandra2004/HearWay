@@ -6,6 +6,9 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,12 +20,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,10 +52,14 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import ro.utcn.uid.hearway.R
 import ro.utcn.uid.hearway.tts.TtsManager
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun Communicate() {
+fun Communicate(
+    onDismiss: () -> Unit,
+    onError: (String) -> Unit
+) {
     val cameraPermissionState =
         rememberPermissionState(Manifest.permission.CAMERA)
 
@@ -59,7 +74,9 @@ fun Communicate() {
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             cameraPermissionState.status.isGranted -> {
-                CameraPreview(LocalLifecycleOwner.current)
+                CameraPreview(LocalLifecycleOwner.current,
+                    onError = onError
+                )
             }
 
             cameraPermissionState.status.shouldShowRationale -> {
@@ -69,7 +86,7 @@ fun Communicate() {
             }
 
             else -> {
-                PermissionDenied()
+                PermissionDenied(onDismiss = onDismiss)
             }
         }
 
@@ -78,7 +95,10 @@ fun Communicate() {
 }
 
 @Composable
-fun CameraPreview(lifecycleOwner: LifecycleOwner) {
+fun CameraPreview(
+    lifecycleOwner: LifecycleOwner,
+    onError: (String) -> Unit
+) {
     val context = LocalContext.current
     AndroidView(
         factory = {
@@ -100,7 +120,7 @@ fun CameraPreview(lifecycleOwner: LifecycleOwner) {
                         lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview
                     )
                 } catch (e: Exception) {
-                    // Fails silently. We can add logging here if needed.
+                    onError(e.message ?: "Unknown error")
                 }
             }, ContextCompat.getMainExecutor(context))
             previewView
@@ -111,6 +131,15 @@ fun CameraPreview(lifecycleOwner: LifecycleOwner) {
 
 @Composable
 fun CommunicateOverlay() {
+    var showConfirmation by remember { mutableStateOf(false) }
+
+    LaunchedEffect(showConfirmation) {
+        if (showConfirmation) {
+            delay(3000)
+            showConfirmation = false
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -120,42 +149,71 @@ fun CommunicateOverlay() {
     ) {
         Image(
             painter = painterResource(id = R.drawable.cab_driver),
-            contentDescription = "DEMO",
+            contentDescription = "Cab Driver Image",
             modifier = Modifier.weight(2f)
         )
 
-        // Buttons take up the remaining 1/3
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(
-                onClick = { TtsManager.speak("Yes, I am Ana") },
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)), // Green
-                modifier = Modifier.fillMaxWidth()
+            AnimatedVisibility(
+                visible = showConfirmation,
+                enter = fadeIn(),
+                exit = fadeOut()
             ) {
-                Text(text = "Yes, I am Ana", color = Color.Black, fontSize = 20.sp, modifier = Modifier.padding(8.dp))
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = { TtsManager.speak("Thanks") },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
-                    modifier = Modifier.weight(1f)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 ) {
-                    Text(text = "Thanks", color = Color.White, fontSize = 20.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(8.dp))
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Success",
+                        tint = Color.Green
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = "INSTRUCTION SENT", color = Color.Green, fontSize = 16.sp)
                 }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
-                    onClick = { TtsManager.speak("Airport") },
+                    onClick = {
+                        TtsManager.speak("Yes, I am Ana")
+                        showConfirmation = true
+                    },
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
-                    modifier = Modifier.weight(1f)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)), // Green
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "Airport", color = Color.White, fontSize = 20.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(8.dp))
+                    Text(text = "Yes, I am Ana", color = Color.Black, fontSize = 20.sp, modifier = Modifier.padding(8.dp))
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            TtsManager.speak("Thanks")
+                            showConfirmation = true
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Thanks", color = Color.White, fontSize = 20.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(8.dp))
+                    }
+                    Button(
+                        onClick = {
+                            TtsManager.speak("Airport")
+                            showConfirmation = true
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Airport", color = Color.White, fontSize = 20.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(8.dp))
+                    }
                 }
             }
         }
@@ -185,7 +243,7 @@ fun PermissionRationale(onRequest: () -> Unit) {
 }
 
 @Composable
-fun PermissionDenied() {
+fun PermissionDenied(onDismiss: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -199,5 +257,9 @@ fun PermissionDenied() {
             color = Color.White,
             textAlign = TextAlign.Center
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = onDismiss) {
+            Text(text = "Go Back")
+        }
     }
 }

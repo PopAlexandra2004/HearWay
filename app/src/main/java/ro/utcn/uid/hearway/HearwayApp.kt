@@ -1,5 +1,6 @@
 package ro.utcn.uid.hearway
 
+import android.app.Activity
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -13,20 +14,19 @@ import androidx.compose.ui.platform.LocalContext
 import ro.utcn.uid.hearway.common.HearwayAppState
 import ro.utcn.uid.hearway.common.UserProfile
 import ro.utcn.uid.hearway.tts.TtsManager
+import ro.utcn.uid.hearway.ui.composables.Error
 import ro.utcn.uid.hearway.ui.composables.communicate.Communicate
 import ro.utcn.uid.hearway.ui.composables.dashboard.Dashboard
-import ro.utcn.uid.hearway.ui.composables.Exit
-import ro.utcn.uid.hearway.ui.composables.Error
 import ro.utcn.uid.hearway.ui.composables.profile.AppLoading
 
 
 @Composable
 fun HearwayApp() {
-    var userProfile by rememberSaveable { mutableStateOf<UserProfile?>(null) }
     var error       by remember { mutableStateOf<String?>(null) }
-    var fromState   by rememberSaveable { mutableStateOf(HearwayAppState.LOAD_TTS) }
+    var fromState   by rememberSaveable { mutableStateOf(HearwayAppState.INIT) }
     var nextState   by rememberSaveable { mutableStateOf(HearwayAppState.LOAD_TTS) }
-    val context = LocalContext.current
+    var userProfile by rememberSaveable { mutableStateOf<UserProfile?>(null) }
+    val context     = LocalContext.current
 
     DisposableEffect(Unit) {
         TtsManager.initialize(context)
@@ -46,10 +46,11 @@ fun HearwayApp() {
         }
 
         HearwayAppState.INIT -> {
-            AppLoading(onProfileSelected = { selectedUserType ->
-                userProfile = UserProfile(name = "User", userType = selectedUserType)
-                nextState = HearwayAppState.DASHBOARD
-            },
+            AppLoading(
+                onProfileSelected = { selectedUserType ->
+                    userProfile = UserProfile(name = "User", userType = selectedUserType)
+                    nextState = HearwayAppState.DASHBOARD
+                },
                 onError = { it ->
                     error = it
                     fromState = HearwayAppState.INIT
@@ -62,14 +63,22 @@ fun HearwayApp() {
             Dashboard(
                 onNavigate = { Log.d("HearwayApp", "Navigate clicked") },
                 onCommunicate = {
+                    fromState = HearwayAppState.DASHBOARD
                     nextState = HearwayAppState.COMMUNICATE
-                    Log.d("HearwayApp", "Communicate clicked") },
+                },
                 onEmergency = { Log.d("HearwayApp", "Emergency clicked") }
             )
         }
 
         HearwayAppState.COMMUNICATE -> {
-            Communicate()
+            Communicate(
+                onDismiss = { nextState = fromState },
+                onError = { it ->
+                    error = it
+                    fromState = HearwayAppState.COMMUNICATE
+                    nextState = HearwayAppState.ERROR
+                }
+            )
         }
 
         HearwayAppState.ERROR -> {
@@ -82,11 +91,8 @@ fun HearwayApp() {
         }
 
         HearwayAppState.EXIT -> {
-            Exit(
-                onDismissRequest = {
-                    nextState = HearwayAppState.INIT
-                }
-            )
+            val activity = (context as? Activity)
+            activity?.finishAndRemoveTask()
         }
     }
 }
