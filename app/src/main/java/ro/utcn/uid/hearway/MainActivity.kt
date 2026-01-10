@@ -10,7 +10,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MyHearwayTheme {
-                // A surface container using the 'background' color from the theme
                 HearwayApp()
             }
         }

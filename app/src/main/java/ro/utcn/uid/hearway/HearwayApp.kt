@@ -1,25 +1,33 @@
 package ro.utcn.uid.hearway
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import ro.utcn.uid.hearway.common.HearwayAppState
 import ro.utcn.uid.hearway.common.UserProfile
+import ro.utcn.uid.hearway.tts.TtsManager
 import ro.utcn.uid.hearway.ui.composables.AppLoading
+import ro.utcn.uid.hearway.ui.composables.Dashboard
+import ro.utcn.uid.hearway.ui.composables.Exit
+import ro.utcn.uid.hearway.ui.composables.Error
+
 
 @Composable
 fun HearwayApp() {
-    var userProfile by remember { mutableStateOf<UserProfile?>(null) }
+    var error             by remember { mutableStateOf<String?>(null) }
+    var userProfile by rememberSaveable { mutableStateOf<UserProfile?>(null) }
     val context = LocalContext.current
+    var fromState by rememberSaveable { mutableStateOf(HearwayAppState.INIT) }
+    var nextState by rememberSaveable { mutableStateOf(HearwayAppState.LOAD_TTS) }
 
+    // The TTS Manager lifecycle is now tied to the entire app.
     DisposableEffect(Unit) {
         TtsManager.initialize(context)
         onDispose {
@@ -27,13 +35,52 @@ fun HearwayApp() {
         }
     }
 
-    if (userProfile == null) {
-        AppLoading(onProfileSelected = { selectedUserType ->
-            userProfile = UserProfile(name = "User", userType = selectedUserType)
-        })
-    } else {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(text = "Dashboard for ${userProfile?.userType} user.")
+    when (nextState) {
+        HearwayAppState.LOAD_TTS -> {
+            val ttsInitialized by TtsManager.isInitialized
+            LaunchedEffect(ttsInitialized) {
+                if (ttsInitialized) {
+                    nextState = HearwayAppState.INIT
+                }
+            }
+        }
+
+        HearwayAppState.INIT -> {
+            AppLoading(onProfileSelected = { selectedUserType ->
+                userProfile = UserProfile(name = "User", userType = selectedUserType)
+                nextState = HearwayAppState.DASHBOARD
+            },
+                onError = { it ->
+                    error = it
+                    fromState = HearwayAppState.INIT
+                    nextState = HearwayAppState.ERROR
+                }
+            )
+        }
+
+        HearwayAppState.DASHBOARD -> {
+            Dashboard(
+                onNavigate = { Log.d("HearwayApp", "Navigate clicked") },
+                onCommunicate = { Log.d("HearwayApp", "Communicate clicked") },
+                onEmergency = { Log.d("HearwayApp", "Emergency clicked") }
+            )
+        }
+
+        HearwayAppState.ERROR -> {
+            Error(
+                error = error!!,
+                onRetry = {
+                    nextState = fromState
+                }
+            )
+        }
+
+        HearwayAppState.EXIT -> {
+            Exit(
+                onDismissRequest = {
+                    nextState = HearwayAppState.INIT
+                }
+            )
         }
     }
 }

@@ -20,7 +20,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -34,14 +36,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ro.utcn.uid.hearway.TtsManager
+import ro.utcn.uid.hearway.tts.TtsManager
 import ro.utcn.uid.hearway.common.UserType
 import ro.utcn.uid.hearway.ui.theme.MyHearwayTheme
 
 @Composable
-fun AppLoading(onProfileSelected: (UserType) -> Unit) {
+fun AppLoading(
+    onProfileSelected: (UserType) -> Unit,
+    onError: (String) -> Unit
+) {
     val focusRequester = remember { FocusRequester() }
     val ttsInitialized by TtsManager.isInitialized
+    var error by remember { mutableStateOf<String?>(null) }
+    var isError by remember { mutableStateOf(false) }
+    if (isError) {
+        error = "Custom error"
+        onError(error ?: "Unknown error")
+    }
+
 
     Column(
         modifier = Modifier
@@ -97,19 +109,10 @@ fun AppLoading(onProfileSelected: (UserType) -> Unit) {
         }
     }
 
-    // This effect will re-launch whenever ttsInitialized changes.
     LaunchedEffect(ttsInitialized) {
         focusRequester.requestFocus()
         if (ttsInitialized) {
             TtsManager.speak("To select the blind profile, please press the volume down button.")
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    MyHearwayTheme {
-        AppLoading(onProfileSelected = {})
     }
 }
