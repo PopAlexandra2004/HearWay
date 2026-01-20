@@ -6,6 +6,7 @@ enum class HearwayAppState {
     DASHBOARD,
     COMMUNICATE,
     EMERGENCY,
+    ACTIVE_NAVIGATION,  // New state for Task 3
     FUTURE_NAVIGATION,
     ERROR,
     EXIT

@@ -32,4 +32,23 @@ object HapticManager {
         val amplitudes = intArrayOf(0, VibrationEffect.DEFAULT_AMPLITUDE, 0, VibrationEffect.DEFAULT_AMPLITUDE)
         vibrator?.vibrate(VibrationEffect.createWaveform(timings, amplitudes, -1))
     }
+
+    fun prepareToExit() {
+        // Soft double pulse pattern - "get ready"
+        val timings = longArrayOf(0, 200, 100, 200)
+        val amplitudes = intArrayOf(0, VibrationEffect.DEFAULT_AMPLITUDE / 2, 0, VibrationEffect.DEFAULT_AMPLITUDE / 2)
+        vibrator?.vibrate(VibrationEffect.createWaveform(timings, amplitudes, -1))
+    }
+
+    fun getOffNow() {
+        // Strong continuous buzz - "exit now!"
+        vibrator?.vibrate(VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE))
+    }
+
+    fun warning() {
+        // Three quick pulses - "warning/error"
+        val timings = longArrayOf(0, 100, 50, 100, 50, 100)
+        val amplitudes = intArrayOf(0, VibrationEffect.DEFAULT_AMPLITUDE, 0, VibrationEffect.DEFAULT_AMPLITUDE, 0, VibrationEffect.DEFAULT_AMPLITUDE)
+        vibrator?.vibrate(VibrationEffect.createWaveform(timings, amplitudes, -1))
+    }
 }

@@ -23,6 +23,7 @@ import ro.utcn.uid.hearway.ui.composables.FutureImplementationScreen
 import ro.utcn.uid.hearway.ui.composables.communicate.Communicate
 import ro.utcn.uid.hearway.ui.composables.dashboard.Dashboard
 import ro.utcn.uid.hearway.ui.composables.emergency.EmergencyScreen
+import ro.utcn.uid.hearway.ui.composables.navigation.NavigationScreen
 import ro.utcn.uid.hearway.ui.composables.profile.AppLoading
 
 
@@ -72,9 +73,9 @@ fun HearwayApp() {
             Dashboard(
                 userProfile = userProfile,
                 onNavigate = {
-                    Log.d("HearwayApp", "Switching to FUTURE_NAVIGATION")
+                    Log.d("HearwayApp", "Switching to ACTIVE_NAVIGATION")
                     fromState = HearwayAppState.DASHBOARD
-                    nextState = HearwayAppState.FUTURE_NAVIGATION
+                    nextState = HearwayAppState.ACTIVE_NAVIGATION
                 },
                 onCommunicate = {
                     Log.d("HearwayApp", "Switching to COMMUNICATE")
@@ -104,12 +105,23 @@ fun HearwayApp() {
             Log.d("HearwayApp", "Rendering EmergencyScreen Now")
             EmergencyScreen(
                 userProfile = userProfile,
-                onDismiss = { showCancelledToast -> 
+                onDismiss = { showCancelledToast ->
                     if (showCancelledToast) {
                         Toast.makeText(context, "Reporting Cancelled", Toast.LENGTH_SHORT).show()
                     }
                     Log.d("HearwayApp", "Dismissing EmergencyScreen")
-                    nextState = fromState 
+                    nextState = fromState
+                }
+            )
+        }
+
+        HearwayAppState.ACTIVE_NAVIGATION -> {
+            Log.d("HearwayApp", "Rendering NavigationScreen for Task 3")
+            NavigationScreen(
+                userProfile = userProfile,
+                onDismiss = {
+                    Log.d("HearwayApp", "Dismissing NavigationScreen")
+                    nextState = fromState
                 }
             )
         }
@@ -117,7 +129,7 @@ fun HearwayApp() {
         HearwayAppState.FUTURE_NAVIGATION -> {
             Log.d("HearwayApp", "Rendering FutureImplementationScreen")
             FutureImplementationScreen(
-                onDismiss = { 
+                onDismiss = {
                     Log.d("HearwayApp", "Dismissing FutureImplementationScreen")
                     nextState = fromState
                 }
