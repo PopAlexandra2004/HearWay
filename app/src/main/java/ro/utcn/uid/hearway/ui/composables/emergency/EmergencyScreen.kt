@@ -40,22 +40,21 @@ fun EmergencyScreen(userProfile: UserProfile?, onDismiss: (showCancelledToast: B
     val emergencyTypes = listOf("MEDICAL", "SECURITY", "FIRE", "HARASSMENT", "OTHER")
     var selectedIndex by remember { mutableIntStateOf(0) }
     var currentState by remember { mutableStateOf(EmergencyState.SELECTING) }
-    var timeLeft by remember { mutableIntStateOf(5) }
+    var timeLeft by remember { mutableIntStateOf(10) }
     
     val focusRequester = remember { FocusRequester() }
     val isBlind = userProfile?.userType == UserType.BLIND
 
-    // Initiation Haptic and TTS for Blind
     LaunchedEffect(Unit) {
         HapticManager.pulse()
         focusRequester.requestFocus()
         if (isBlind) {
-            delay(500) // Small delay to ensure TTS is ready after transition
-            TtsManager.speak("Emergency menu. Use volume down to cycle types, volume up to confirm. Currently selected: ${emergencyTypes[selectedIndex]}")
+            delay(500) 
+            TtsManager.speak("Emergency menu. Use volume down to cycle types, " +
+                    "volume up to confirm. Currently selected: ${emergencyTypes[selectedIndex]}")
         }
     }
 
-    // Timeout Logic
     LaunchedEffect(currentState, timeLeft) {
         if (currentState == EmergencyState.SELECTING) {
             if (timeLeft > 0) {
@@ -77,11 +76,12 @@ fun EmergencyScreen(userProfile: UserProfile?, onDismiss: (showCancelledToast: B
 
     val handleSelection = {
         val type = emergencyTypes[selectedIndex]
-        sendEmergencyReport(type)
+        val message = getEmergencyMessage(type, userProfile?.name)
+        sendEmergencyReport(type, message)
         currentState = EmergencyState.SUCCESS
         HapticManager.success()
         if (isBlind) {
-            TtsManager.speak("Emergency reported. $type. Help is on the way.")
+            TtsManager.speak(message)
         }
     }
 
@@ -98,17 +98,15 @@ fun EmergencyScreen(userProfile: UserProfile?, onDismiss: (showCancelledToast: B
                         if (event.type == KeyEventType.KeyDown) {
                             when (event.nativeKeyEvent.keyCode) {
                                 android.view.KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                                    // Navigate grid on KeyDown for better responsiveness
                                     selectedIndex = (selectedIndex + 1) % emergencyTypes.size
                                     HapticManager.distinct()
                                     if (isBlind) {
                                         TtsManager.speak(emergencyTypes[selectedIndex])
                                     }
-                                    timeLeft = 5 // Reset timeout on interaction
+                                    timeLeft = 10 
                                     true
                                 }
                                 android.view.KeyEvent.KEYCODE_VOLUME_UP -> {
-                                    // Confirm selection
                                     handleSelection()
                                     true
                                 }
@@ -176,10 +174,12 @@ fun EmergencyScreen(userProfile: UserProfile?, onDismiss: (showCancelledToast: B
         }
 
         EmergencyState.SUCCESS -> {
+            val type = emergencyTypes[selectedIndex]
+            val message = getEmergencyMessage(type, userProfile?.name)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFF2E7D32)) // Dark Green
+                    .background(Color(0xFF2E7D32)) 
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -193,7 +193,7 @@ fun EmergencyScreen(userProfile: UserProfile?, onDismiss: (showCancelledToast: B
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Help is on the way.\nYour location has been shared.",
+                    text = message,
                     color = Color.White,
                     fontSize = 20.sp,
                     textAlign = TextAlign.Center
@@ -219,6 +219,23 @@ fun EmergencyScreen(userProfile: UserProfile?, onDismiss: (showCancelledToast: B
     }
 }
 
-private fun sendEmergencyReport(type: String) {
-    Log.d("EmergencySystem", "EMERGENCY: $type reported at Lat: 46.7712, Lon: 23.5916 (Mock Location)")
+private fun getEmergencyMessage(type: String, userName: String?): String {
+    val name = userName ?: "the user"
+    return when (type) {
+        "MEDICAL" -> "Medical emergency reported to 112. Live location and $name's medical " +
+                "profile (including name and ID) have been shared with emergency services."
+        "SECURITY" -> "Security threat reported. Live location and $name's profile have been " +
+                "sent to local security authorities."
+        "FIRE" -> "Fire emergency reported to the fire department. Your current location has " +
+                "been shared for immediate intervention."
+        "HARASSMENT" -> "Harassment reported. Location and $name's details have been sent " +
+                "to security and recorded for evidence."
+        "OTHER" -> "Emergency alert sent to $name's primary emergency contact. " +
+                "Your live location is being shared with them now."
+        else -> "Emergency reported. Help is on the way."
+    }
+}
+
+private fun sendEmergencyReport(type: String, message: String) {
+    Log.d("EmergencySystem", "EMERGENCY: $type. Message: $message. Sent at Lat: 46.7712, Lon: 23.5916 (Mock Location)")
 }
