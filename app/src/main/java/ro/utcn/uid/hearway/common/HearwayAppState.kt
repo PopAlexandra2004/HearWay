@@ -6,7 +6,12 @@ enum class HearwayAppState {
     DASHBOARD,
     COMMUNICATE,
     EMERGENCY,
-    ACTIVE_NAVIGATION,  // New state for Task 3
+    ROUTE_PLANNING,
+    ACTIVE_NAVIGATION,
+    FIND_STOPS,
+    REQUEST_HELP,
+    SAVE_ROUTE,
+    SET_REMINDER,
     FUTURE_NAVIGATION,
     ERROR,
     EXIT

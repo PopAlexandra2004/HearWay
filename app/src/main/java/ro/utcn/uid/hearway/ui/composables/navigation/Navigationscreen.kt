@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -27,11 +28,12 @@ import ro.utcn.uid.hearway.common.UserType
 import ro.utcn.uid.hearway.tts.TtsManager
 
 enum class NavigationState {
-    JOURNEY_ACTIVE,      // Initial state - on the bus
-    GPS_SIGNAL_LOST,     // Error state - GPS lost in tunnel
-    PREPARE_TO_EXIT,     // ~20 seconds before stop
-    GET_OFF_NOW,         // Vehicle stopped at destination
-    JOURNEY_COMPLETE     // Success screen
+    JOURNEY_ACTIVE,
+    ROUTE_ALERT,
+    GPS_SIGNAL_LOST,
+    PREPARE_TO_EXIT,
+    GET_OFF_NOW,
+    JOURNEY_COMPLETE
 }
 
 @Composable
@@ -44,7 +46,6 @@ fun NavigationScreen(
     val focusRequester = remember { FocusRequester() }
     val isBlind = userProfile?.userType == UserType.BLIND
 
-    // Initial haptic and TTS
     LaunchedEffect(Unit) {
         HapticManager.pulse()
         focusRequester.requestFocus()
@@ -54,16 +55,24 @@ fun NavigationScreen(
         }
     }
 
-    // Automatic progression through states
     LaunchedEffect(currentState) {
         when (currentState) {
             NavigationState.JOURNEY_ACTIVE -> {
-                // Simulate journey progress over 8 seconds
+
                 for (i in 0..100) {
                     progress = i / 100f
-                    delay(80) // 80ms * 100 = 8 seconds total
+                    delay(80)
 
-                    // Simulate GPS loss at 60% progress (like entering a tunnel)
+                    if (i == 30) {
+                        currentState = NavigationState.ROUTE_ALERT
+                        HapticManager.warning()
+                        if (isBlind) {
+                            TtsManager.speak("Route update. Bus 24 is delayed 5 minutes. Tap to acknowledge.")
+                        }
+                        return@LaunchedEffect
+                    }
+
+
                     if (i == 60) {
                         currentState = NavigationState.GPS_SIGNAL_LOST
                         HapticManager.warning()
@@ -73,17 +82,23 @@ fun NavigationScreen(
                         return@LaunchedEffect
                     }
                 }
-                // If no GPS error, move to prepare state
+
                 currentState = NavigationState.PREPARE_TO_EXIT
                 HapticManager.prepareToExit()
                 if (isBlind) {
                     TtsManager.speak("Prepare to exit. Your stop is next.")
                 }
             }
-            NavigationState.GPS_SIGNAL_LOST -> {
-                // Stay in error state for 3 seconds showing warning
+            NavigationState.ROUTE_ALERT -> {
+
                 delay(3000)
-                // Then proceed with schedule-based alert
+
+                currentState = NavigationState.JOURNEY_ACTIVE
+            }
+            NavigationState.GPS_SIGNAL_LOST -> {
+
+                delay(3000)
+
                 currentState = NavigationState.GET_OFF_NOW
                 HapticManager.getOffNow()
                 if (isBlind) {
@@ -91,9 +106,9 @@ fun NavigationScreen(
                 }
             }
             NavigationState.PREPARE_TO_EXIT -> {
-                // Wait 3 seconds in prepare state
+
                 delay(3000)
-                // Move to get off now
+
                 currentState = NavigationState.GET_OFF_NOW
                 HapticManager.getOffNow()
                 if (isBlind) {
@@ -101,9 +116,9 @@ fun NavigationScreen(
                 }
             }
             NavigationState.GET_OFF_NOW -> {
-                // Stay on this screen for 4 seconds
+
                 delay(4000)
-                // Move to complete
+
                 currentState = NavigationState.JOURNEY_COMPLETE
                 HapticManager.success()
                 if (isBlind) {
@@ -111,12 +126,12 @@ fun NavigationScreen(
                 }
             }
             NavigationState.JOURNEY_COMPLETE -> {
-                // Just display success, user can go back
+
             }
         }
     }
 
-    // Volume down to cancel for blind users
+
     BackHandler {
         onDismiss()
     }
@@ -142,6 +157,7 @@ fun NavigationScreen(
     ) {
         when (currentState) {
             NavigationState.JOURNEY_ACTIVE -> JourneyActiveScreen(progress, isBlind)
+            NavigationState.ROUTE_ALERT -> RouteAlertScreen(isBlind)
             NavigationState.GPS_SIGNAL_LOST -> GpsSignalLostScreen(progress, isBlind)
             NavigationState.PREPARE_TO_EXIT -> PrepareToExitScreen(isBlind)
             NavigationState.GET_OFF_NOW -> GetOffNowScreen(isBlind)
@@ -231,7 +247,7 @@ fun PrepareToExitScreen(isBlind: Boolean) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFF6F00))  // Orange
+            .background(Color(0xFFFF6F00))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -273,11 +289,77 @@ fun PrepareToExitScreen(isBlind: Boolean) {
 }
 
 @Composable
+fun RouteAlertScreen(isBlind: Boolean) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Alert banner
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFFFF5722), RoundedCornerShape(16.dp))
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "⚠️",
+                fontSize = 60.sp,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "ROUTE UPDATE",
+                color = Color.White,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Bus 24 is delayed",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "+5 min delay",
+                color = Color.Yellow,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = "Continuing journey...",
+            color = Color.White,
+            fontSize = 16.sp,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
 fun GetOffNowScreen(isBlind: Boolean) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF00FF00)),  // Bright Green
+            .background(Color(0xFF00FF00)),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -329,7 +411,7 @@ fun GpsSignalLostScreen(progress: Float, isBlind: Boolean) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFFFEB3B))  // Yellow warning
+                .background(Color(0xFFFFEB3B))
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -407,7 +489,7 @@ fun JourneyCompleteScreen(isBlind: Boolean, onDismiss: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF2E7D32))  // Dark Green
+            .background(Color(0xFF2E7D32))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

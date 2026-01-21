@@ -24,6 +24,11 @@ import ro.utcn.uid.hearway.ui.composables.communicate.Communicate
 import ro.utcn.uid.hearway.ui.composables.dashboard.Dashboard
 import ro.utcn.uid.hearway.ui.composables.emergency.EmergencyScreen
 import ro.utcn.uid.hearway.ui.composables.navigation.NavigationScreen
+import ro.utcn.uid.hearway.ui.composables.navigation.RoutePlanningScreen
+import ro.utcn.uid.hearway.ui.composables.navigation.FindStopsScreen
+import ro.utcn.uid.hearway.ui.composables.assistance.RequestHelpScreen
+import ro.utcn.uid.hearway.ui.composables.favorites.SaveRouteScreen
+import ro.utcn.uid.hearway.ui.composables.reminders.SetReminderScreen
 import ro.utcn.uid.hearway.ui.composables.profile.AppLoading
 
 
@@ -73,9 +78,9 @@ fun HearwayApp() {
             Dashboard(
                 userProfile = userProfile,
                 onNavigate = {
-                    Log.d("HearwayApp", "Switching to ACTIVE_NAVIGATION")
+                    Log.d("HearwayApp", "Switching to ROUTE_PLANNING")
                     fromState = HearwayAppState.DASHBOARD
-                    nextState = HearwayAppState.ACTIVE_NAVIGATION
+                    nextState = HearwayAppState.ROUTE_PLANNING
                 },
                 onCommunicate = {
                     Log.d("HearwayApp", "Switching to COMMUNICATE")
@@ -115,25 +120,100 @@ fun HearwayApp() {
             )
         }
 
+        HearwayAppState.ROUTE_PLANNING -> {
+            Log.d("HearwayApp", "Rendering RoutePlanningScreen for Task 1")
+            RoutePlanningScreen(
+                userProfile = userProfile,
+                onRouteSelected = {
+                    Log.d("HearwayApp", "Route selected, moving to ACTIVE_NAVIGATION")
+                    fromState = HearwayAppState.ROUTE_PLANNING
+                    nextState = HearwayAppState.ACTIVE_NAVIGATION
+                },
+                onFindStops = {
+                    Log.d("HearwayApp", "Finding nearby stops, moving to FIND_STOPS")
+                    fromState = HearwayAppState.ROUTE_PLANNING
+                    nextState = HearwayAppState.FIND_STOPS
+                },
+                onRequestHelp = {
+                    Log.d("HearwayApp", "Requesting assistance, moving to REQUEST_HELP")
+                    fromState = HearwayAppState.ROUTE_PLANNING
+                    nextState = HearwayAppState.REQUEST_HELP
+                },
+                onSetReminder = {
+                    Log.d("HearwayApp", "Setting reminder, moving to SET_REMINDER")
+                    fromState = HearwayAppState.ROUTE_PLANNING
+                    nextState = HearwayAppState.SET_REMINDER
+                },
+                onDismiss = {
+                    Log.d("HearwayApp", "Dismissing RoutePlanningScreen")
+                    nextState = fromState
+                }
+            )
+        }
+
         HearwayAppState.ACTIVE_NAVIGATION -> {
             Log.d("HearwayApp", "Rendering NavigationScreen for Task 3")
             NavigationScreen(
                 userProfile = userProfile,
                 onDismiss = {
-                    Log.d("HearwayApp", "Dismissing NavigationScreen")
+                    Log.d("HearwayApp", "Navigation completed, showing save route option")
+                    fromState = HearwayAppState.ACTIVE_NAVIGATION
+                    nextState = HearwayAppState.SAVE_ROUTE
+                }
+            )
+        }
+
+        HearwayAppState.FIND_STOPS -> {
+            Log.d("HearwayApp", "Rendering FindStopsScreen for Task 4")
+            FindStopsScreen(
+                userProfile = userProfile,
+                onStopSelected = {
+                    Log.d("HearwayApp", "Stop selected, returning to dashboard")
+                    nextState = HearwayAppState.DASHBOARD
+                },
+                onDismiss = {
+                    Log.d("HearwayApp", "Dismissing FindStopsScreen")
+                    nextState = fromState
+                }
+            )
+        }
+
+        HearwayAppState.REQUEST_HELP -> {
+            Log.d("HearwayApp", "Rendering RequestHelpScreen for Task 5")
+            RequestHelpScreen(
+                userProfile = userProfile,
+                onDismiss = {
+                    Log.d("HearwayApp", "Dismissing RequestHelpScreen")
+                    nextState = fromState
+                }
+            )
+        }
+
+        HearwayAppState.SAVE_ROUTE -> {
+            Log.d("HearwayApp", "Rendering SaveRouteScreen for Task 8")
+            SaveRouteScreen(
+                userProfile = userProfile,
+                onDismiss = {
+                    Log.d("HearwayApp", "Route saved or dismissed, returning to dashboard")
+                    nextState = HearwayAppState.DASHBOARD
+                }
+            )
+        }
+
+        HearwayAppState.SET_REMINDER -> {
+            Log.d("HearwayApp", "Rendering SetReminderScreen for Task 9")
+            SetReminderScreen(
+                userProfile = userProfile,
+                onDismiss = {
+                    Log.d("HearwayApp", "Reminder set or dismissed, returning to previous state")
                     nextState = fromState
                 }
             )
         }
 
         HearwayAppState.FUTURE_NAVIGATION -> {
-            Log.d("HearwayApp", "Rendering FutureImplementationScreen")
-            FutureImplementationScreen(
-                onDismiss = {
-                    Log.d("HearwayApp", "Dismissing FutureImplementationScreen")
-                    nextState = fromState
-                }
-            )
+            Log.d("HearwayApp", "Redirecting to FindStopsScreen (Task 4)")
+            nextState = HearwayAppState.FIND_STOPS
         }
 
         HearwayAppState.ERROR -> {

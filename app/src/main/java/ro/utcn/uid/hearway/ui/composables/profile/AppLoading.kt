@@ -89,7 +89,7 @@ fun AppLoading(
         }
         Spacer(modifier = Modifier.height(20.dp))
         Button(
-            onClick = { /* Non-clickable */ },
+            onClick = {  },
             enabled = false,
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.DarkGray,
